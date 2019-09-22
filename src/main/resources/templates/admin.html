@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>admin</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body class="bg-dark text-white">
+<div th:replace="home::navbar"></div>
+
+<div class="container-fluid mt-2">
+    <div class="row">
+        <div class="col-auto">
+            <th:block th:if="${isAlreadyExist}">
+                <small class="text-danger">wrong login</small>
+            </th:block>
+            <form action="/admin/add" method="post">
+                <div class="form-group">
+                    <label for="addInputLogin">Login</label>
+                    <input type="text" class="form-control" id="addInputLogin" placeholder="Login" maxlength="20"
+                           required name="login">
+                </div>
+                <div class="form-group">
+                    <label for="addInputName">Name</label>
+                    <input type="text" class="form-control" id="addInputName" placeholder="Name" maxlength="20"
+                           required name="name">
+                </div>
+                <div class="form-group">
+                    <label for="addInputPass">Password</label>
+                    <input type="password" class="form-control" id="addInputPass" placeholder="Password" maxlength="20"
+                           required name="password">
+                </div>
+                <span class="text">Roles:</span>
+                <div class="form-check-inline">
+                    <input type="checkbox" class="form-check-input" id="Check1" name="rolesParam" value="user" checked>
+                    <label class="form-check-label" for="Check1">user</label>
+                </div>
+                <div class="form-check-inline">
+                    <input type="checkbox" class="form-check-input" id="Check2" name="rolesParam" value="admin">
+                    <label class="form-check-label" for="Check2">admin</label>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-success">Add user</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<th:block th:if="${users.size()>0}">
+    <div th:fragment="dynamicTable">
+        <div class="container-fluid">
+            <div class="row">
+                <th:block th:each="user : ${users}">
+                    <div class="col-auto mt-4">
+                        <div class="card" style="background: #3a6d80;">
+                            <th:block th:if="${id != user.id}">
+                                <form class="form-select-button" action="/admin/delete" method="post">
+                                    <div class="card-body">
+                                        <div class="card-text">
+                                            <p th:text="${'Id: ' + user.id}"></p>
+                                            <p th:text="${'Login: ' + user.login}"></p>
+                                            <p th:text="${'Name: ' + user.name}"></p>
+                                            <p th:text="${'Roles: ' + user.getRolesAsStrings()}"></p>
+                                        </div>
+                                        <a class="btn btn-primary" th:href="@{'/admin/update/' + ${user.id}}">Update</a>
+                                        <button class="btn btn-danger" th:name="id" th:value="${user.id}">Delete
+                                        </button>
+                                    </div>
+                                </form>
+                            </th:block>
+                            <th:block th:if="${id == user.id}">
+                                <form action="/admin/update" method="post">
+                                    <div class="card-body">
+                                        <div class="card-text">
+                                            <small class="text-danger" th:if="${isAlreadyExist2}"
+                                                   th:text="${'User with the login: (' + login + ') is already exist'}"></small>
+                                            <input type="hidden" name="id" th:value="${user.id}">
+                                            <div class="form-group">
+                                                <label for="updateInputLogin">Login</label>
+                                                <input type="text" class="form-control" id="updateInputLogin"
+                                                       placeholder="Login" maxlength="20" required
+                                                       name="login" th:value="${user.login}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="updateInputName">Name</label>
+                                                <input type="text" class="form-control" id="updateInputName"
+                                                       placeholder="Name" maxlength="20" required
+                                                       name="name" th:value="${user.name}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="updateInputPass">Password</label>
+                                                <input type="password" class="form-control" id="updateInputPass"
+                                                       placeholder="Password" maxlength="20"
+                                                       name="password">
+                                            </div>
+                                            <button type="submit" class="btn btn-success">Save</button>
+                                            <a class="btn btn-danger" href="/admin">Cancel</a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </th:block>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+</body>
+</html>
