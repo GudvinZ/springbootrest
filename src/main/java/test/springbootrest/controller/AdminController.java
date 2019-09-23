@@ -28,15 +28,13 @@ public class AdminController {
 
 
     @GetMapping
-//    @PreAuthorize("hasAnyAuthority('admin')")
     public String adminPage(ModelMap model) {
         addAllUsersToModel(model);
         return "admin";
     }
 
     @PostMapping(value = "/add")
-//    @PreAuthorize("hasAnyAuthority('admin')")
-    public String addUser(@RequestParam String[] rolesParam, @ModelAttribute() User user, ModelMap model) {
+    public String addUser(@RequestParam(defaultValue = "user") String[] rolesParam, @ModelAttribute() User user, ModelMap model) {
         user.setRoles(rolesParam);
         model.addAttribute("isAlreadyExist", !userService.addUser(user));
 
@@ -45,7 +43,6 @@ public class AdminController {
     }
 
     @PostMapping(value = "/delete")
-//    @PreAuthorize("hasAnyAuthority('admin')")
     public String deleteUser(@RequestParam Long id, ModelMap model) {
         userService.deleteUserById(id);
 
@@ -54,7 +51,6 @@ public class AdminController {
     }
 
     @GetMapping("/update/{id}")
-//    @PreAuthorize("hasAnyAuthority('admin')")
     public String updatePage(@PathVariable String id, ModelMap model) {
         model.addAttribute("id", Long.parseLong(id));
 
@@ -63,7 +59,7 @@ public class AdminController {
     }
 
     @PostMapping(value = "/update")
-//    @PreAuthorize("hasAnyAuthority('admin')")
+
     public String updateUser(@ModelAttribute User user, ModelMap model) {
         addAllUsersToModel(model);
         if (!userService.updateUser(user)) {

@@ -1,5 +1,8 @@
 package test.springbootrest.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
+
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.List;
@@ -20,32 +23,24 @@ public class User {
     @Column
     private String password;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public User() {
-    }
-
-    public User(String login, String password, String name, String... roles) {
-        this.login = login;
-        this.password = password;
-        this.name = name;
-        this.roles = Stream.of(roles).map(Role::new).collect(Collectors.toList());
-    }
-
     @Column
     private String name;
 
-    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Collection<Role> roles;
+
+    public User() {
+    }
+
+    public User(String login, String password, String name, Collection<Role> roles) {
+        this.login = login;
+        this.password = password;
+        this.name = name;
+        this.roles = roles;
+    }
 
     public Long getId() {
         return id;
@@ -71,10 +66,19 @@ public class User {
         this.password = password;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public Collection<Role> getRoles() {
         return roles;
     }
 
+    @JsonSetter
     public void setRoles(Collection<Role> roles) {
         this.roles = roles;
     }
@@ -83,6 +87,7 @@ public class User {
         this.roles = Stream.of(roles).map(Role::new).collect(Collectors.toList());
     }
 
+    @JsonIgnore
     public List<String> getRolesAsStrings() {
         return roles.stream().map(Role::getRoleName).collect(Collectors.toList());
     }

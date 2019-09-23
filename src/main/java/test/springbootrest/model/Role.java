@@ -1,5 +1,7 @@
 package test.springbootrest.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.util.Collection;
 @Entity
@@ -13,6 +15,7 @@ public class Role {
     @Column
     private String roleName;
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "roles")
     private Collection<User> users;
 
