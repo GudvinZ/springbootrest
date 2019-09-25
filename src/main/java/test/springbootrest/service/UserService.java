@@ -4,6 +4,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import test.springbootrest.model.User;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserService extends UserDetailsService {
     boolean addUser(User user);
@@ -18,9 +19,9 @@ public interface UserService extends UserDetailsService {
 
     List<User> getAllUsers();
 
-    User getUserById(Long param);
+    Optional<User> getUserById(Long param);
 
-    User getUserByLogin(String param);
+    Optional<User> getUserByLogin(String param);
 
     List<User> getUsersByRoles(String... params);
 

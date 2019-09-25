@@ -1,6 +1,9 @@
 package test.springbootrest.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +31,9 @@ public class AdminController {
 
 
     @GetMapping
-    public String adminPage(ModelMap model) {
+    public String adminPage(ModelMap model/*, Authentication authentication*/) {
+//        if(!authentication.getAuthorities().contains(new SimpleGrantedAuthority("admin")))
+//            return "redirect:/user";
         addAllUsersToModel(model);
         return "admin";
     }

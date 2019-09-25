@@ -1,6 +1,7 @@
 package test.springbootrest.controller;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -31,7 +32,6 @@ public class HomeController {
 
     @PostMapping("/reg")
     public String registration(@ModelAttribute User user, ModelMap model) {
-        user.setRoles("user");
         if (userService.addUser(user)) {
             org.springframework.security.core.userdetails.UserDetails userDetails = userService.loadUserByUsername(user.getLogin());
             UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =

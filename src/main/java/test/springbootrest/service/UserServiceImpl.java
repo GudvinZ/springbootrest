@@ -12,9 +12,10 @@ import test.springbootrest.model.User;
 import test.springbootrest.repository.UserRepository;
 
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 @Service
 @Transactional
@@ -35,12 +36,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean addUser(User user) {
-        if (isValidParam(user.getLogin()) && getUserByLogin(user.getLogin()) == null
+        if (isValidParam(user.getLogin()) && !getUserByLogin(user.getLogin()).isPresent()
                 && isValidParam(user.getPassword()) && isValidParam(user.getName())) {
-            if (user.getRoles() == null || user.getRoles().size() < 1)
-                user.setRoles("user");
-            else
+            if (user.getRoles() == null || user.getRoles().size() < 1) {
+                user.setRoles(Collections.singletonList(roleService.getRoleByName("user")));
+            }
+            else {
                 user.setRoles(user.getRoles().stream().map(role -> roleService.getRoleByName(role.getRoleName())).collect(Collectors.toList()));
+            }
             user.setPassword(passwordEncoder.encode(user.getPassword()));
 
             userRepository.save(user);
@@ -52,8 +55,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean validateUser(String login, String password) {
         if (isValidParam(login) && isValidParam(password)) {
-            User user = getUserByLogin(login);
-            return user != null && user.getPassword().equals(password);
+            return getUserByLogin(login).map(x -> x.getPassword().equals(password)).orElse(false);
         } else
             throw new InvalidParameterException();
     }
@@ -70,13 +72,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean updateUser(User user) {
-//        if (null != user.getId())
-        User old = getUserById(user.getId());
+        User old = getUserById(user.getId()).orElseThrow(NotFoundException::new);
 
-        if (old == null)
-            throw new NotFoundException("user not found");
-
-        if (old.getLogin().equals(user.getLogin()) || getUserByLogin(user.getLogin()) == null) {
+        if (old.getLogin().equals(user.getLogin()) || !getUserByLogin(user.getLogin()).isPresent()) {
             boolean isValidLogin = isValidParam(user.getLogin()) && !old.getLogin().equals(user.getLogin());
             boolean isValidPassword = isValidParam(user.getPassword()) && !old.getPassword().equals(user.getPassword());
             boolean isValidName = isValidParam(user.getName()) && !old.getName().equals(user.getName());
@@ -99,13 +97,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUserById(Long id) {
-        return userRepository.findById(id).orElse(null);
+    public Optional<User> getUserById(Long id) {
+        return userRepository.findById(id);
     }
 
     @Override
-    public User getUserByLogin(String login) {
-        return userRepository.findByLogin(login).orElse(null);
+    public Optional<User> getUserByLogin(String login) {
+        return userRepository.findByLogin(login);
     }
 
     @Override
@@ -123,10 +121,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        User user = getUserByLogin(login);
-        if (user == null) {
-            throw new NotFoundException("user not found");
-        }
+        User user = getUserByLogin(login).orElseThrow(NotFoundException::new);
 
         return new org.springframework.security.core.userdetails.User(user.getLogin(), user.getPassword(),
                 user.getRoles().stream().map(x -> new SimpleGrantedAuthority(x.getRoleName())).collect(Collectors.toList()));
