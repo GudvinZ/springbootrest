@@ -115,7 +115,7 @@
                         <div class="container-fluid">
                             <form action="/reg" method="post">
                                 <th:block th:if="${isAlreadyExist}">
-                                    <small class="text-danger">wrong login</small>
+                                    <small class="text-danger">User with the same login is already exist</small>
                                 </th:block>
                                 <div class="form-group">
                                     <label for="regInputLogin">Login</label>

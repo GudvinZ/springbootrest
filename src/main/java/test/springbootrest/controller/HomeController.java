@@ -1,13 +1,13 @@
 package test.springbootrest.controller;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import test.springbootrest.exception.IsAlreadyExistException;
 import test.springbootrest.model.User;
 import test.springbootrest.service.UserService;
 
@@ -26,20 +26,22 @@ public class HomeController {
 
     @GetMapping("/")
     public String homePage(ModelMap model) {
-
         return "home";
     }
 
     @PostMapping("/reg")
     public String registration(@ModelAttribute User user, ModelMap model) {
-        if (userService.addUser(user)) {
+        try {
+            userService.addUser(user);
             org.springframework.security.core.userdetails.UserDetails userDetails = userService.loadUserByUsername(user.getLogin());
             UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                     new UsernamePasswordAuthenticationToken(userDetails, user.getPassword(), userDetails.getAuthorities());
 
             SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-        } else
+            return "home";
+        } catch (IsAlreadyExistException e) {
             model.addAttribute("isAlreadyExist", true);
-        return "home";
+            return "home";
+        }
     }
 }

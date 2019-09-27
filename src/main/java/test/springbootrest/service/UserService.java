@@ -7,21 +7,19 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserService extends UserDetailsService {
-    boolean addUser(User user);
+    void addUser(User user);
 
     boolean validateUser(String login, String password);
 
     void deleteUserById(Long id);
 
-//    void deleteAllUsers();
-
-    boolean updateUser(User user);
+    void updateUser(User user);
 
     List<User> getAllUsers();
 
-    Optional<User> getUserById(Long param);
+    User getUserById(Long param);
 
-    Optional<User> getUserByLogin(String param);
+    User getUserByLogin(String param);
 
     List<User> getUsersByRoles(String... params);
 

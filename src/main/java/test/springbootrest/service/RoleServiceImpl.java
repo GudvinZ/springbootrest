@@ -2,9 +2,11 @@ package test.springbootrest.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import test.springbootrest.exception.NotFoundException;
 import test.springbootrest.model.Role;
 import test.springbootrest.repository.RoleRepository;
 
+import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,11 +21,14 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public boolean addRole(Role role) {
-        if (getRoleByName(role.getRoleName()) == null) {
-            roleRepository.save(role);
-            return true;
-        } else
+        if (role.getRoleName() == null || role.getRoleName().isEmpty())
+            throw new InvalidParameterException();
+
+        if (roleRepository.findByRoleName(role.getRoleName()).isPresent())
             return false;
+
+        roleRepository.save(role);
+        return true;
     }
 
     @Override
@@ -31,19 +36,16 @@ public class RoleServiceImpl implements RoleService {
         roleRepository.deleteById(id);
     }
 
-//    @Override
-//    public void deleteAllRoles() {
-//        dao.deleteAll();
-//    }
-
     @Override
     public boolean updateRole(Role role) {
-        Optional<Role> old = roleRepository.findById(role.getId());
-        if(old.isPresent()) {
-            old.get().setRoleName(role.getRoleName());
-            return true;
-        } else
+        if (role.getRoleName() == null || role.getRoleName().isEmpty())
             return false;
+
+        return roleRepository.findById(role.getId())
+                .map(r -> {
+                    r.setRoleName(role.getRoleName());
+                    return true;
+                }).orElse(false);
     }
 
     @Override
@@ -53,11 +55,11 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Role getRoleById(Long id) {
-        return roleRepository.findById(id).orElse(null);
+        return roleRepository.findById(id).orElseThrow(NotFoundException::new);
     }
 
     @Override
     public Role getRoleByName(String name) {
-        return roleRepository.findByRoleName(name).orElse(null);
+        return roleRepository.findByRoleName(name).orElseThrow(NotFoundException::new);
     }
 }

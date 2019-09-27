@@ -1,82 +1,74 @@
 package test.springbootrest.controller;
 
-import com.sun.deploy.net.HttpResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import test.springbootrest.exception.IsAlreadyExistException;
 import test.springbootrest.exception.NotFoundException;
 import test.springbootrest.model.User;
-import test.springbootrest.service.RoleService;
 import test.springbootrest.service.UserService;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.UnaryOperator;
+import java.security.InvalidParameterException;
 
 @RestController
 @RequestMapping("/rest")
 //@PreAuthorize("hasAnyAuthority('admin')")
 public class RestCrudController {
     private final UserService userService;
-    private final RoleService roleService;
 
-    @ExceptionHandler(NotFoundException.class)
-    public void handleNotFoundException(HttpServletResponse response) throws IOException {
-        response.sendError(HttpStatus.NOT_FOUND.value());
-    }
-
-    @ExceptionHandler(IsAlreadyExistException.class)
-    public void handleIsAlreadyExistException(HttpServletResponse response) throws IOException {
-        response.sendError(HttpStatus.BAD_REQUEST.value());
-    }
-
-    public RestCrudController(UserService userService, RoleService roleService) {
+    public RestCrudController(UserService userService) {
         this.userService = userService;
-        this.roleService = roleService;
     }
 
-    @PostMapping("/add")
-    public User addUser(@RequestBody User user) {
-        if (userService.addUser(user))
-            return user;
-        else
-            throw new IsAlreadyExistException("this user is already exist");
-
-//        userService.addUser(user);
-//        return userService.getUserByLogin(user.getLogin()).orElseThrow(IsAlreadyExistException::new);
+    @PostMapping
+    public ResponseEntity<?> addUser(@RequestBody User user) {
+        try {
+            userService.addUser(user);
+            return ResponseEntity
+                    .created(ServletUriComponentsBuilder.fromCurrentRequest()
+                            .path("/{id}")
+                            .buildAndExpand(userService.getUserByLogin(user.getLogin()).getId())
+                            .toUri())
+                    .build();
+        } catch (IsAlreadyExistException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "user is already exist", e);
+        } catch (InvalidParameterException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "parameters incorrect", e);
+        }
     }
 
-    @GetMapping("/get/{id}")
-    public User getUniqueUser(@PathVariable Long id) {
-        return userService.getUserById(id).orElseThrow(NotFoundException::new);
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUniqueUser(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(userService.getUserById(id));
+        } catch (NotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found", e);
+        }
     }
 
 
-    @GetMapping("/getAll")
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    @GetMapping
+    public ResponseEntity<?> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @PutMapping("/update")
-    public User updateUser(@RequestBody User user) {
-        if (userService.updateUser(user))
-            return userService.getUserById(user.getId()).orElseThrow(NotFoundException::new);
-        else
-            throw new IsAlreadyExistException("this user is already exist");
+    @PutMapping
+    public ResponseEntity<?> updateUser(@RequestBody User user) {
+        try {
+            userService.updateUser(user);
+            return ResponseEntity.ok().build();
+        } catch (IsAlreadyExistException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "user with the login(" + user.getLogin() + ") is already exist", e);
+        } catch (NotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found", e);
+        }
     }
 
-    @DeleteMapping("/delete")
-    public void deleteUser(@RequestParam Long id) {
-        userService.deleteUserById(id);
-    }
-
-    @GetMapping("/testUser")
-    public User getTestUser() {
-        return new User("login", "password", "name", Collections.singletonList(roleService.getRoleByName("user")));
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+            userService.deleteUserById(id);
+            return ResponseEntity.ok().build();
     }
 }
