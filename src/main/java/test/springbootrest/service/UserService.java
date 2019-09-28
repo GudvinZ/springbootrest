@@ -9,8 +9,6 @@ import java.util.Optional;
 public interface UserService extends UserDetailsService {
     void addUser(User user);
 
-    boolean validateUser(String login, String password);
-
     void deleteUserById(Long id);
 
     void updateUser(User user);

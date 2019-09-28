@@ -40,25 +40,15 @@ public class UserServiceImpl implements UserService {
         if (userRepository.findByLogin(user.getLogin()).isPresent())
             throw new IsAlreadyExistException();
 
-        User newUser = new User(user.getLogin(), user.getPassword(), user.getName());
-
         if (user.getRoles() == null || user.getRoles().size() < 1) {
-            newUser.setRoles(Collections.singletonList(roleService.getRoleByName("user")));
+            user.setRoles(Collections.singletonList(roleService.getRoleByName("user")));
         } else {
-            newUser.setRoles(user.getRoles().stream().map(role -> roleService.getRoleByName(role.getRoleName())).collect(Collectors.toList()));
+            user.setRoles(user.getRoles().stream().map(role -> roleService.getRoleByName(role.getRoleName())).collect(Collectors.toList()));
         }
 
-        newUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        userRepository.save(newUser);
-    }
-
-    @Override
-    public boolean validateUser(String login, String password) {
-        if (!isValidString(login) && !isValidString(password))
-            throw new InvalidParameterException();
-
-        return userRepository.findByLogin(login).map(x -> x.getPassword().equals(password)).orElse(false);
+        userRepository.save(user);
     }
 
     @Override

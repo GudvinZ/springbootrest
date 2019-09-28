@@ -29,7 +29,7 @@ public class RestCrudController {
             return ResponseEntity
                     .created(ServletUriComponentsBuilder.fromCurrentRequest()
                             .path("/{id}")
-                            .buildAndExpand(userService.getUserByLogin(user.getLogin()).getId())
+                            .buildAndExpand(user)
                             .toUri())
                     .build();
         } catch (IsAlreadyExistException e) {
@@ -39,10 +39,19 @@ public class RestCrudController {
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id={id}")
     public ResponseEntity<?> getUniqueUser(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(userService.getUserById(id));
+        } catch (NotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found", e);
+        }
+    }
+
+    @GetMapping("/login={login}")
+    public ResponseEntity<?> getUniqueUser(@PathVariable String login) {
+        try {
+            return ResponseEntity.ok(userService.getUserByLogin(login));
         } catch (NotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found", e);
         }
