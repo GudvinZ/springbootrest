@@ -1,5 +1,6 @@
 package test.springbootrest.controller;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,9 +12,11 @@ import test.springbootrest.model.User;
 import test.springbootrest.service.UserService;
 
 import java.security.InvalidParameterException;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/rest")
+@RequestMapping("/users")
 //@PreAuthorize("hasAnyAuthority('admin')")
 public class RestCrudController {
     private final UserService userService;
@@ -22,6 +25,9 @@ public class RestCrudController {
         this.userService = userService;
     }
 
+//    @ModelAttribute
+//    public  addHeaders
+
     @PostMapping
     public ResponseEntity<?> addUser(@RequestBody User user) {
         try {
@@ -29,7 +35,7 @@ public class RestCrudController {
             return ResponseEntity
                     .created(ServletUriComponentsBuilder.fromCurrentRequest()
                             .path("/{id}")
-                            .buildAndExpand(user)
+                            .buildAndExpand(user.getId())
                             .toUri())
                     .build();
         } catch (IsAlreadyExistException e) {
@@ -60,7 +66,10 @@ public class RestCrudController {
 
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+        return ResponseEntity.ok(userService.getAllUsers()
+                .stream()
+                .sorted(Comparator.comparing(User::getId))
+                .collect(Collectors.toList()));
     }
 
     @PutMapping
@@ -77,7 +86,7 @@ public class RestCrudController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-            userService.deleteUserById(id);
-            return ResponseEntity.ok().build();
+        userService.deleteUserById(id);
+        return ResponseEntity.noContent().build();
     }
 }
